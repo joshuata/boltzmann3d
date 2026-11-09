@@ -107,6 +107,65 @@
         </java>
     </target>
 
+    <!-- boltzmann4d (TypeScript port) tools: parity fixtures and physics benchmarks. -->
+    <property name="tools.bin" location="build/tools"/>
+    <property name="presets.dir" location="src/edu/byu/chem/boltzmann/resources/simsettingsfiles/presets"/>
+
+    <target name="tools-compile" depends="compile">
+        <delete dir="${tools.bin}"/>
+        <mkdir dir="${tools.bin}"/>
+        <javac srcdir="tests" destdir="${tools.bin}" release="${java.release}" encoding="UTF-8"
+               includeantruntime="false" classpathref="runtime.classpath"
+               includes="edu/byu/chem/boltzmann/tools/**"/>
+    </target>
+
+    <target name="parity-dump" depends="tools-compile"
+            description="Write boltzmann4d parity fixtures: ant parity-dump -Dparity.out=DIR [-Dparity.events=2000]">
+        <fail unless="parity.out" message="Set -Dparity.out to the output directory"/>
+        <property name="parity.events" value="2000"/>
+        <java classname="edu.byu.chem.boltzmann.tools.ParityDump" fork="true" failonerror="true">
+            <classpath><path refid="runtime.classpath"/><pathelement location="${tools.bin}"/></classpath>
+            <jvmarg value="-Djava.awt.headless=true"/>
+            <arg value="${parity.out}"/>
+            <arg value="${parity.events}"/>
+            <arg value="${presets.dir}/default.set"/>
+            <arg value="${presets.dir}/2Dbrownian.set"/>
+            <arg value="${presets.dir}/2Ddiffuse.set"/>
+            <arg value="${presets.dir}/2Deffuse.set"/>
+            <arg value="${presets.dir}/2Dentropy.set"/>
+            <arg value="${presets.dir}/2Dequal.set"/>
+            <arg value="${presets.dir}/2Dequil.set"/>
+            <arg value="${presets.dir}/2Dhotcold.set"/>
+            <arg value="${presets.dir}/2Dhyd100.set"/>
+            <arg value="${presets.dir}/2Dhyd1000.set"/>
+            <arg value="${presets.dir}/2Dliquid.set"/>
+            <arg value="${presets.dir}/2Dmixture.set"/>
+            <arg value="${presets.dir}/2Doxy100.set"/>
+            <arg value="${presets.dir}/2Doxy1000.set"/>
+            <arg value="${presets.dir}/2Dpresnum.set"/>
+        </java>
+    </target>
+
+    <target name="benchmark" depends="tools-compile"
+            description="Physics scaling benchmark for boltzmann4d: ant benchmark -Dbenchmark.out=FILE [-Dbenchmark.counts=...]">
+        <fail unless="benchmark.out" message="Set -Dbenchmark.out to the output JSON file"/>
+        <property name="benchmark.warmup" value="2"/>
+        <property name="benchmark.measure" value="5"/>
+        <property name="benchmark.maxframe" value="30"/>
+        <property name="benchmark.counts" value="100 300 1000 3000 10000 20000"/>
+        <property name="benchmark.heap" value="12g"/>
+        <java classname="edu.byu.chem.boltzmann.tools.PhysicsBenchmark" fork="true" failonerror="true">
+            <classpath><path refid="runtime.classpath"/><pathelement location="${tools.bin}"/></classpath>
+            <jvmarg value="-Djava.awt.headless=true"/>
+            <jvmarg value="-Xmx${benchmark.heap}"/>
+            <arg value="${benchmark.out}"/>
+            <arg value="${benchmark.warmup}"/>
+            <arg value="${benchmark.measure}"/>
+            <arg value="${benchmark.maxframe}"/>
+            <arg line="${benchmark.counts}"/>
+        </java>
+    </target>
+
     <target name="test-render" depends="test-render-core"
             description="Alias for the core-profile rendering check"/>
 
