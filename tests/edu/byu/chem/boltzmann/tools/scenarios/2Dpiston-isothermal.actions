@@ -1,0 +1,4 @@
+# Compress isothermally, stop part way, then keep running with the thermostat on.
+events 8000
+2 movePiston 0.5 ISOTHERMAL 500
+90 stopPiston

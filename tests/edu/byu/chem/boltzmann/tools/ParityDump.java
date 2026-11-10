@@ -4,6 +4,8 @@ import edu.byu.chem.boltzmann.model.io.Load;
 import edu.byu.chem.boltzmann.model.physics.EventInfo;
 import edu.byu.chem.boltzmann.model.physics.Particle;
 import edu.byu.chem.boltzmann.model.physics.Physics;
+import edu.byu.chem.boltzmann.model.physics.Piston;
+import edu.byu.chem.boltzmann.model.physics.Piston.PistonMode;
 import edu.byu.chem.boltzmann.utils.data.ParticleType;
 import edu.byu.chem.boltzmann.utils.data.SimulationInfo;
 import edu.byu.chem.boltzmann.utils.data.StatSettingsInfo;
@@ -19,6 +21,12 @@ import java.util.List;
  * initial state Java loaded (random placement differs between the two apps), then every
  * event Java performs over whole frames until at least the requested number of events,
  * and the final positions and velocities (with z components for 3D presets).
+ *
+ * A settings file may have a sibling <name>.actions script of run-time actions, one per
+ * line, applied between frames (as the UI would): "<frame> movePiston <level> <ADIABATIC|
+ * ISOTHERMAL|INSTANTANEOUS> <speed m/s>", "<frame> stopPiston", or "events <n>" to run at
+ * least n events instead of minEvents. Frame k means just before the k-th frame after the
+ * first. The actions are recorded in the fixture so the port can replay them.
  *
  * Usage: ParityDump <outputDir> <minEvents> <preset.set>...
  */
@@ -48,7 +56,19 @@ public final class ParityDump {
             String name = preset.getName().replaceFirst("\\.set$", "");
             seedMathRandom(1);
             SimulationInfo info = new Load(null).loadFile(preset);
-            String json = dump(name, info, minEvents);
+            List<String[]> actions = new ArrayList<>();
+            int events = minEvents;
+            File script = new File(preset.getParentFile(), name + ".actions");
+            if (script.exists()) {
+                for (String line : Files.readAllLines(script.toPath(), StandardCharsets.UTF_8)) {
+                    line = line.strip();
+                    if (line.isEmpty() || line.startsWith("#")) continue;
+                    String[] words = line.split("\\s+");
+                    if (words[0].equals("events")) events = Integer.parseInt(words[1]);
+                    else actions.add(words);
+                }
+            }
+            String json = dump(name, info, events, actions);
             Files.writeString(outputDir.resolve(name + ".json"), json, StandardCharsets.UTF_8);
             System.out.println("Wrote " + name + ".json");
         }
@@ -66,7 +86,17 @@ public final class ParityDump {
         ((java.util.Random) field.get(null)).setSeed(seed);
     }
 
-    static String dump(String name, SimulationInfo info, int minEvents) {
+    static void apply(Physics physics, String[] action) {
+        switch (action[1]) {
+            case "movePiston" -> physics.AdjustPistonLevel(
+                    Double.parseDouble(action[2]), PistonMode.valueOf(action[3]),
+                    Double.parseDouble(action[4]));
+            case "stopPiston" -> physics.AdjustPistonLevel(physics.getPiston().getCurLevel());
+            default -> throw new IllegalArgumentException("Unknown action " + action[1]);
+        }
+    }
+
+    static String dump(String name, SimulationInfo info, int minEvents, List<String[]> actions) {
         JsonWriter json = new JsonWriter().beginObject();
         json.name("preset").value(name);
         json.name("generator").value("boltzmann3d ParityDump, Java " + Runtime.version());
@@ -107,12 +137,31 @@ public final class ParityDump {
         physics.advanceToNextFrame(); // first call only creates the first frame
         int frames = 0;
         while (physics.events.size() < minEvents) {
+            for (String[] action : actions) {
+                if (Integer.parseInt(action[0]) == frames) apply(physics, action);
+            }
             physics.advanceToNextFrame();
             frames++;
         }
         json.newline().name("frameDuration").value(physics.getFrameDuration());
         json.name("frames").value(frames);
         json.name("time").value(physics.getTime());
+        json.newline().name("actions").beginArray();
+        for (String[] action : actions) {
+            json.beginArray().value(Long.parseLong(action[0])).value(action[1]);
+            if (action[1].equals("movePiston")) {
+                json.value(Double.parseDouble(action[2])).value(action[3]).value(Double.parseDouble(action[4]));
+            }
+            json.endArray();
+        }
+        json.endArray();
+        Piston piston = physics.getPiston();
+        json.newline().name("piston").beginObject();
+        json.name("curLevel").value(piston.getCurLevel());
+        json.name("targetLevel").value(piston.getTargetLevel());
+        json.name("deltaKE").value(physics.getThermostat().getDeltaKE());
+        json.name("thermostatEnabled").value(physics.getThermostat().isEnabled());
+        json.endObject();
         json.newline().name("events").beginArray();
         for (double[] e : physics.events) {
             json.newline().beginArray()

@@ -160,6 +160,8 @@
             <arg value="${presets.dir}/3Doxy100.set"/>
             <arg value="${presets.dir}/3Doxy1000.set"/>
             <arg value="${presets.dir}/3Dpresnum.set"/>
+            <arg value="${scenarios.dir}/2Dpiston-adiabatic.set"/>
+            <arg value="${scenarios.dir}/2Dpiston-isothermal.set"/>
         </java>
     </target>
 
