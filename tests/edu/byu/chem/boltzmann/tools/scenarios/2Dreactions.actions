@@ -1,0 +1,4 @@
+# 2Dequil with one blue particle (so Java keeps the reacted type), red+red -> blue+blue
+# above 3 kJ/mol, back above 2 kJ/mol.
+events 6000
+reactions 3.0 2.0 false

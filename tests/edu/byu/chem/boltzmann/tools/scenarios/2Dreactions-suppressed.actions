@@ -1,0 +1,3 @@
+# As 2Dreactions, but the reverse reaction is suppressed.
+events 6000
+reactions 3.0 2.0 true

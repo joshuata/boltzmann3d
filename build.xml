@@ -164,6 +164,8 @@
             <arg value="${scenarios.dir}/2Dpiston-isothermal.set"/>
             <arg value="${scenarios.dir}/2Dwells.set"/>
             <arg value="${scenarios.dir}/2Dwells-mixture.set"/>
+            <arg value="${scenarios.dir}/2Dreactions.set"/>
+            <arg value="${scenarios.dir}/2Dreactions-suppressed.set"/>
         </java>
     </target>
 

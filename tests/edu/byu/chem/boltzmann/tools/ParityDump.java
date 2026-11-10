@@ -27,7 +27,9 @@ import java.util.List;
  * ISOTHERMAL|INSTANTANEOUS> <speed m/s>", "<frame> stopPiston", or "events <n>" to run at
  * least n events instead of minEvents. "wells <radius multiplier> <depth kJ/mol per type>..."
  * turns on attractive square wells, which a settings file can't (DummyMain hard-codes them
- * off), by setting SimulationInfo's fields directly. Frame k means just before the k-th frame after the
+ * off), by setting SimulationInfo's fields directly. "reactions <forward kJ/mol> <reverse kJ/mol>
+ * <suppress reverse true|false>" turns on red-blue reactions between the first two types the
+ * same way. Frame k means just before the k-th frame after the
  * first. The actions are recorded in the fixture so the port can replay them.
  *
  * Usage: ParityDump <outputDir> <minEvents> <preset.set>...
@@ -61,6 +63,7 @@ public final class ParityDump {
             List<String[]> actions = new ArrayList<>();
             int events = minEvents;
             double[] wells = null;
+            String[] reactions = null;
             File script = new File(preset.getParentFile(), name + ".actions");
             if (script.exists()) {
                 for (String line : Files.readAllLines(script.toPath(), StandardCharsets.UTF_8)) {
@@ -72,10 +75,14 @@ public final class ParityDump {
                         wells = new double[words.length - 1];
                         for (int k = 1; k < words.length; k++) wells[k - 1] = Double.parseDouble(words[k]);
                         setWells(info, wells);
+                    } else if (words[0].equals("reactions")) {
+                        reactions = words;
+                        setReactions(info, Double.parseDouble(words[1]), Double.parseDouble(words[2]),
+                                Boolean.parseBoolean(words[3]));
                     } else actions.add(words);
                 }
             }
-            String json = dump(name, info, events, actions, wells);
+            String json = dump(name, info, events, actions, wells, reactions);
             Files.writeString(outputDir.resolve(name + ".json"), json, StandardCharsets.UTF_8);
             System.out.println("Wrote " + name + ".json");
         }
@@ -103,6 +110,18 @@ public final class ParityDump {
         setField(info, "energyWellDepths", depths);
     }
 
+    /** Sets SimulationInfo's (final) reaction fields; must happen before Physics is built. */
+    static void setReactions(SimulationInfo info, double forward, double reverse, boolean suppressReverse)
+            throws ReflectiveOperationException {
+        List<ParticleType> types = info.getParticleTypes();
+        setField(info, "reactionMode", true);
+        java.util.Map<java.util.Set<ParticleType>, edu.byu.chem.boltzmann.utils.data.ReactionRelationship> map =
+                new java.util.HashMap<>();
+        map.put(new java.util.HashSet<>(types), new edu.byu.chem.boltzmann.utils.data.ReactionRelationship(
+                types.get(0), types.get(1), forward, reverse, false, suppressReverse));
+        setField(info, "reactionRelationships", map);
+    }
+
     static void setField(Object target, String name, Object value) throws ReflectiveOperationException {
         java.lang.reflect.Field field = target.getClass().getDeclaredField(name);
         field.setAccessible(true);
@@ -120,7 +139,7 @@ public final class ParityDump {
     }
 
     static String dump(String name, SimulationInfo info, int minEvents, List<String[]> actions,
-            double[] wells) {
+            double[] wells, String[] reactions) {
         JsonWriter json = new JsonWriter().beginObject();
         json.name("preset").value(name);
         json.name("generator").value("boltzmann3d ParityDump, Java " + Runtime.version());
@@ -176,6 +195,13 @@ public final class ParityDump {
             json.name("depths").numbers(java.util.Arrays.copyOfRange(wells, 1, wells.length));
             json.endObject();
         }
+        if (reactions != null) {
+            json.newline().name("reactions").beginObject();
+            json.name("forward").value(Double.parseDouble(reactions[1]));
+            json.name("reverse").value(Double.parseDouble(reactions[2]));
+            json.name("suppressReverse").value(Boolean.parseBoolean(reactions[3]));
+            json.endObject();
+        }
         json.newline().name("actions").beginArray();
         for (String[] action : actions) {
             json.beginArray().value(Long.parseLong(action[0])).value(action[1]);
@@ -218,6 +244,17 @@ public final class ParityDump {
         json.newline().name("y").numbers(y);
         json.newline().name("vx").numbers(vx);
         json.newline().name("vy").numbers(vy);
+        if (reactions != null) {
+            // Each particle's display colour, as the index of the type with that colour.
+            double[] colors = new double[particles.length];
+            List<ParticleType> types = info.getParticleTypes();
+            for (int k = 0; k < particles.length; k++) {
+                for (int t = 0; t < types.size(); t++) {
+                    if (types.get(t).defaultColor.equals(particles[k].getDisplayColor())) colors[k] = t;
+                }
+            }
+            json.newline().name("colors").numbers(colors);
+        }
         if (info.dimension == 3) {
             json.newline().name("z").numbers(z);
             json.newline().name("vz").numbers(vz);
