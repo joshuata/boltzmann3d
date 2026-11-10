@@ -126,6 +126,8 @@
         <java classname="edu.byu.chem.boltzmann.tools.ParityDump" fork="true" failonerror="true">
             <classpath><path refid="runtime.classpath"/><pathelement location="${tools.bin}"/></classpath>
             <jvmarg value="-Djava.awt.headless=true"/>
+            <!-- Lets ParityDump seed Math.random() so fixtures are reproducible. -->
+            <jvmarg value="--add-opens=java.base/java.lang=ALL-UNNAMED"/>
             <arg value="${parity.out}"/>
             <arg value="${parity.events}"/>
             <arg value="${presets.dir}/default.set"/>

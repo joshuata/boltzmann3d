@@ -46,11 +46,24 @@ public final class ParityDump {
         for (int i = 2; i < args.length; i++) {
             File preset = new File(args[i]);
             String name = preset.getName().replaceFirst("\\.set$", "");
+            seedMathRandom(1);
             SimulationInfo info = new Load(null).loadFile(preset);
             String json = dump(name, info, minEvents);
             Files.writeString(outputDir.resolve(name + ".json"), json, StandardCharsets.UTF_8);
             System.out.println("Wrote " + name + ".json");
         }
+    }
+
+    /**
+     * Load places RandomlyPlaced particles with Math.random(), which can't be seeded through
+     * its API. Seeding the generator behind it makes the fixtures reproducible, so they
+     * only change when the Java program does. Needs --add-opens java.base/java.lang.
+     */
+    static void seedMathRandom(long seed) throws ReflectiveOperationException {
+        Class<?> holder = Class.forName("java.lang.Math$RandomNumberGeneratorHolder");
+        java.lang.reflect.Field field = holder.getDeclaredField("randomNumberGenerator");
+        field.setAccessible(true);
+        ((java.util.Random) field.get(null)).setSeed(seed);
     }
 
     static String dump(String name, SimulationInfo info, int minEvents) {
