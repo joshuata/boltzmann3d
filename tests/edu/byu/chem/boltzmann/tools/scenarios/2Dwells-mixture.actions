@@ -1,0 +1,4 @@
+# Unequal wells (4 and 1 kJ/mol per type), radius 1.5 x contact: deep enough that
+# some pairs cannot climb out (WELL_REFLECT).
+events 6000
+wells 1.5 4.0 1.0

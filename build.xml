@@ -162,6 +162,8 @@
             <arg value="${presets.dir}/3Dpresnum.set"/>
             <arg value="${scenarios.dir}/2Dpiston-adiabatic.set"/>
             <arg value="${scenarios.dir}/2Dpiston-isothermal.set"/>
+            <arg value="${scenarios.dir}/2Dwells.set"/>
+            <arg value="${scenarios.dir}/2Dwells-mixture.set"/>
         </java>
     </target>
 

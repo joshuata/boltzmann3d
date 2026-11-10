@@ -1,0 +1,150 @@
+#Boltzmann3D V2.43
+# Sat 27 Dec 2008 01:13:24
+
+GlobalSettings {
+  paused FALSE
+  size 70 50 10
+  dimensions 2
+  hole_size 8
+  pressure_averaging_time 60
+  boundary REFLECTING
+  color_scheme DARK
+  forget_time 4
+  lighting TRUE
+  stat_name INSTANTANEOUS_SPEED
+  stat_color BOTH
+  cumulative FALSE
+  width FALSE
+  history FALSE
+  simulation_speed 1x
+  pressure_prediction_mode IDEAL
+  3d_viewing_angles 0 0
+  coloring_mode NORMAL
+  trace_point_size 2
+  maxwell_demon_mode FALSE
+  reaction_mode FALSE
+  trace_mode FALSE
+}
+
+AbscissaLimits {
+
+  StatLimits {
+    name INSTANTANEOUS_SPEED
+    both_limits 0.00000 2187.0
+    red_limits 0.00000 3499.2
+    blue_limits 0.00000 874.79
+  }
+
+  StatLimits {
+    name AVERAGE_SPEED
+    both_limits 437.39 1312.2
+    red_limits 699.83 2099.5
+    blue_limits 174.96 524.87
+  }
+
+  StatLimits {
+    name RMS_VELOCITY
+    both_limits 0.00000 2467.7
+    red_limits 0.00000 3948.4
+    blue_limits 0.00000 987.09
+  }
+
+  StatLimits {
+    name AVERAGE_RMS_VELOCITY
+    both_limits 493.55 1480.6
+    red_limits 789.67 2369.0
+    blue_limits 197.42 592.26
+  }
+
+  StatLimits {
+    name KINETIC_ENERGY
+    both_limits 0.00000 6.2359
+    red_limits 0.00000 6.2359
+    blue_limits 0.00000 6.2359
+  }
+
+  StatLimits {
+    name AVERAGE_ENERGY
+    both_limits 1.2472 3.7415
+    red_limits 1.2472 3.7415
+    blue_limits 1.2472 3.7415
+  }
+
+  StatLimits {
+    name PATH
+    both_limits 0.00000 24.775
+    red_limits 0.00000 36.340
+    blue_limits 0.00000 13.210
+  }
+
+  StatLimits {
+    name AVERAGE_PATH
+    both_limits 4.9551 14.865
+    red_limits 7.2681 21.804
+    blue_limits 2.6421 7.9262
+  }
+
+  StatLimits {
+    name TIME/COLLISION
+    both_limits 0.00000 31.858
+    red_limits 0.00000 25.964
+    blue_limits 0.00000 37.753
+  }
+
+  StatLimits {
+    name COLLISION_RATE
+    both_limits 3.9236E-2 0.11771
+    red_limits 4.8144E-2 0.14443
+    blue_limits 3.3110E-2 9.9329E-2
+  }
+
+  StatLimits {
+    name RADIAL_DISTRIBUTION
+    both_limits 0.00000 25.000
+    red_limits 0.00000 25.000
+    blue_limits 0.00000 25.000
+  }
+
+  StatLimits {
+    name X_VELOCITY
+    both_limits -0.00000 0.00000
+    red_limits -2233.5 2233.5
+    blue_limits -558.38 558.38
+  }
+
+  StatLimits {
+    name Y_VELOCITY
+    both_limits -0.00000 0.00000
+    red_limits -2233.5 2233.5
+    blue_limits -558.38 558.38
+  }
+
+  StatLimits {
+    name Z_VELOCITY
+    both_limits -0.00000 0.00000
+    red_limits -2233.5 2233.5
+    blue_limits -558.38 558.38
+  }
+}
+
+ParticleGroup {
+  color Red
+  radius 0.7
+  mass 2
+
+  RandomlyPlaced {
+    count 30
+    average_velocity 1579.348
+  }
+}
+
+ParticleGroup {
+  color Blue
+  radius 1.1
+  mass 32
+
+  RandomlyPlaced {
+    count 30
+    average_velocity 394.837
+  }
+}

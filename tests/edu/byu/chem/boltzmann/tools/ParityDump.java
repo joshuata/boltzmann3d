@@ -25,7 +25,9 @@ import java.util.List;
  * A settings file may have a sibling <name>.actions script of run-time actions, one per
  * line, applied between frames (as the UI would): "<frame> movePiston <level> <ADIABATIC|
  * ISOTHERMAL|INSTANTANEOUS> <speed m/s>", "<frame> stopPiston", or "events <n>" to run at
- * least n events instead of minEvents. Frame k means just before the k-th frame after the
+ * least n events instead of minEvents. "wells <radius multiplier> <depth kJ/mol per type>..."
+ * turns on attractive square wells, which a settings file can't (DummyMain hard-codes them
+ * off), by setting SimulationInfo's fields directly. Frame k means just before the k-th frame after the
  * first. The actions are recorded in the fixture so the port can replay them.
  *
  * Usage: ParityDump <outputDir> <minEvents> <preset.set>...
@@ -58,6 +60,7 @@ public final class ParityDump {
             SimulationInfo info = new Load(null).loadFile(preset);
             List<String[]> actions = new ArrayList<>();
             int events = minEvents;
+            double[] wells = null;
             File script = new File(preset.getParentFile(), name + ".actions");
             if (script.exists()) {
                 for (String line : Files.readAllLines(script.toPath(), StandardCharsets.UTF_8)) {
@@ -65,10 +68,14 @@ public final class ParityDump {
                     if (line.isEmpty() || line.startsWith("#")) continue;
                     String[] words = line.split("\\s+");
                     if (words[0].equals("events")) events = Integer.parseInt(words[1]);
-                    else actions.add(words);
+                    else if (words[0].equals("wells")) {
+                        wells = new double[words.length - 1];
+                        for (int k = 1; k < words.length; k++) wells[k - 1] = Double.parseDouble(words[k]);
+                        setWells(info, wells);
+                    } else actions.add(words);
                 }
             }
-            String json = dump(name, info, events, actions);
+            String json = dump(name, info, events, actions, wells);
             Files.writeString(outputDir.resolve(name + ".json"), json, StandardCharsets.UTF_8);
             System.out.println("Wrote " + name + ".json");
         }
@@ -86,6 +93,22 @@ public final class ParityDump {
         ((java.util.Random) field.get(null)).setSeed(seed);
     }
 
+    /** Sets SimulationInfo's (final) well fields; must happen before Physics is built. */
+    static void setWells(SimulationInfo info, double[] wells) throws ReflectiveOperationException {
+        setField(info, "attractiveParticleInteractions", true);
+        setField(info, "radiusOfInteractionMultiplier", wells[0]);
+        java.util.Map<ParticleType, Double> depths = new java.util.HashMap<>();
+        List<ParticleType> types = info.getParticleTypes();
+        for (int t = 0; t < types.size(); t++) depths.put(types.get(t), wells[t + 1]);
+        setField(info, "energyWellDepths", depths);
+    }
+
+    static void setField(Object target, String name, Object value) throws ReflectiveOperationException {
+        java.lang.reflect.Field field = target.getClass().getDeclaredField(name);
+        field.setAccessible(true);
+        field.set(target, value);
+    }
+
     static void apply(Physics physics, String[] action) {
         switch (action[1]) {
             case "movePiston" -> physics.AdjustPistonLevel(
@@ -96,7 +119,8 @@ public final class ParityDump {
         }
     }
 
-    static String dump(String name, SimulationInfo info, int minEvents, List<String[]> actions) {
+    static String dump(String name, SimulationInfo info, int minEvents, List<String[]> actions,
+            double[] wells) {
         JsonWriter json = new JsonWriter().beginObject();
         json.name("preset").value(name);
         json.name("generator").value("boltzmann3d ParityDump, Java " + Runtime.version());
@@ -146,6 +170,12 @@ public final class ParityDump {
         json.newline().name("frameDuration").value(physics.getFrameDuration());
         json.name("frames").value(frames);
         json.name("time").value(physics.getTime());
+        if (wells != null) {
+            json.newline().name("wells").beginObject();
+            json.name("radiusMultiplier").value(wells[0]);
+            json.name("depths").numbers(java.util.Arrays.copyOfRange(wells, 1, wells.length));
+            json.endObject();
+        }
         json.newline().name("actions").beginArray();
         for (String[] action : actions) {
             json.beginArray().value(Long.parseLong(action[0])).value(action[1]);

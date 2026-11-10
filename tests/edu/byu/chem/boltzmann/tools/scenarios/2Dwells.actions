@@ -1,0 +1,3 @@
+# Square wells of 2 kJ/mol (about kT at 300 K), radius 2 x contact.
+events 6000
+wells 2.0 2.0
