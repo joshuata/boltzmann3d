@@ -110,6 +110,8 @@
     <!-- boltzmann4d (TypeScript port) tools: parity fixtures and physics benchmarks. -->
     <property name="tools.bin" location="build/tools"/>
     <property name="presets.dir" location="src/edu/byu/chem/boltzmann/resources/simsettingsfiles/presets"/>
+    <!-- Settings the bundled presets don't exercise (e.g. a conducting divider). -->
+    <property name="scenarios.dir" location="tests/edu/byu/chem/boltzmann/tools/scenarios"/>
 
     <target name="tools-compile" depends="compile">
         <delete dir="${tools.bin}"/>
@@ -145,6 +147,7 @@
             <arg value="${presets.dir}/2Doxy100.set"/>
             <arg value="${presets.dir}/2Doxy1000.set"/>
             <arg value="${presets.dir}/2Dpresnum.set"/>
+            <arg value="${scenarios.dir}/2Dhotcold-conducting.set"/>
         </java>
     </target>
 
