@@ -18,7 +18,7 @@ import java.util.List;
  * Writes parity fixtures for boltzmann4d (the TypeScript port): for each preset, the exact
  * initial state Java loaded (random placement differs between the two apps), then every
  * event Java performs over whole frames until at least the requested number of events,
- * and the final positions and velocities.
+ * and the final positions and velocities (with z components for 3D presets).
  *
  * Usage: ParityDump <outputDir> <minEvents> <preset.set>...
  */
@@ -78,6 +78,12 @@ public final class ParityDump {
         json.name("holeDiameter").value(info.holeDiameter);
         json.name("maxwellDemonMode").value(info.maxwellDemonMode);
         json.name("dividerThermalMode").value(info.dividerThermalMode.name());
+        if (info.dimension == 3 && info.arenaType == SimulationInfo.ArenaType.DIVIDED_ARENA_WITH_HOLE) {
+            // The ring of edge spheres comes from Math.sin/cos, whose last bit varies between
+            // JVMs and platforms (and differs from JavaScript's), so record it as Java built it.
+            json.newline().name("edgeY").numbers(info.arenaInfo.getEdgeY());
+            json.newline().name("edgeZ").numbers(info.arenaInfo.getEdgeZ());
+        }
         json.newline().name("species").beginArray();
         for (ParticleType type : info.getParticleTypes()) {
             int n = info.getNumberOfParticles(type);
@@ -117,18 +123,26 @@ public final class ParityDump {
 
         Particle[] particles = physics.getParticles();
         double[] x = new double[particles.length], y = new double[particles.length];
+        double[] z = new double[particles.length];
         double[] vx = new double[particles.length], vy = new double[particles.length];
+        double[] vz = new double[particles.length];
         for (int k = 0; k < particles.length; k++) {
             x[k] = particles[k].getX();
             y[k] = particles[k].getY();
             vx[k] = particles[k].getXVel();
             vy[k] = particles[k].getYVel();
+            z[k] = particles[k].getZ();
+            vz[k] = particles[k].getZVel();
         }
         json.newline().name("final").beginObject();
         json.newline().name("x").numbers(x);
         json.newline().name("y").numbers(y);
         json.newline().name("vx").numbers(vx);
         json.newline().name("vy").numbers(vy);
+        if (info.dimension == 3) {
+            json.newline().name("z").numbers(z);
+            json.newline().name("vz").numbers(vz);
+        }
         json.endObject();
         return json.endObject().newline().toString();
     }

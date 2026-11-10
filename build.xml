@@ -148,6 +148,18 @@
             <arg value="${presets.dir}/2Doxy1000.set"/>
             <arg value="${presets.dir}/2Dpresnum.set"/>
             <arg value="${scenarios.dir}/2Dhotcold-conducting.set"/>
+            <arg value="${presets.dir}/3Dbrownian.set"/>
+            <arg value="${presets.dir}/3Ddiffuse.set"/>
+            <arg value="${presets.dir}/3Deffuse.set"/>
+            <arg value="${presets.dir}/3Dentropy.set"/>
+            <arg value="${presets.dir}/3Dequil.set"/>
+            <arg value="${presets.dir}/3Dhotcold.set"/>
+            <arg value="${presets.dir}/3Dhyd100.set"/>
+            <arg value="${presets.dir}/3Dhyd1000.set"/>
+            <arg value="${presets.dir}/3Dmixture.set"/>
+            <arg value="${presets.dir}/3Doxy100.set"/>
+            <arg value="${presets.dir}/3Doxy1000.set"/>
+            <arg value="${presets.dir}/3Dpresnum.set"/>
         </java>
     </target>
 
