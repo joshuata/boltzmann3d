@@ -75,6 +75,9 @@ public final class ParityDump {
         json.name("arenaXSize").value(info.arenaXSize);
         json.name("arenaYSize").value(info.arenaYSize);
         json.name("arenaZSize").value(info.arenaZSize);
+        json.name("holeDiameter").value(info.holeDiameter);
+        json.name("maxwellDemonMode").value(info.maxwellDemonMode);
+        json.name("dividerThermalMode").value(info.dividerThermalMode.name());
         json.newline().name("species").beginArray();
         for (ParticleType type : info.getParticleTypes()) {
             int n = info.getNumberOfParticles(type);
