@@ -1,0 +1,44 @@
+#Boltzmann3D V2.47
+
+GlobalSettings {
+  paused FALSE
+  size 75 50 50
+  dimensions 3
+  hole_size 8
+  pressure_averaging_time 60
+  boundary PISTON
+  piston_speed 0.5
+  color_scheme DARK
+  forget_time 4
+  lighting TRUE
+  stat_name NUMBER_OF_PARTICLES
+  stat_color BOTH
+  cumulative FALSE
+  width FALSE
+  history FALSE
+  simulation_speed 1x
+  pressure_prediction_mode IDEAL
+  3d_viewing_angles 0 0
+  coloring_mode NORMAL
+  trace_point_size 2
+  maxwell_demon_mode FALSE
+  reaction_mode FALSE
+  trace_mode FALSE
+}
+
+ParticleGroup {
+  color Red
+  radius 1
+  mass 2
+
+  RandomlyPlaced {
+    count 40
+    average_velocity 2183.2544264171765
+  }
+}
+
+ParticleGroup {
+  color Blue
+  radius 1
+  mass 2
+}

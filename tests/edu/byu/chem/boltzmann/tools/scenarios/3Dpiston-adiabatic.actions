@@ -1,0 +1,4 @@
+# 3D: compress adiabatically to 40%, then pull back out to 10% while it is still moving.
+events 8000
+2 movePiston 0.4 ADIABATIC 500
+120 movePiston 0.1 ADIABATIC 300
